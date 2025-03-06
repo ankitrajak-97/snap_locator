@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:snap_locator/binding/app_binding.dart';
 
 import 'routes/app_route.dart';
 import 'ui/splash/view/splash_view.dart';
@@ -24,6 +25,7 @@ class MyApp extends StatelessWidget {
         return GetMaterialApp(
           title: 'News Api',
           getPages: getPages,
+          initialBinding: AppBindings(),
           initialRoute: SplashView.name,
           theme: ThemeData(
             primarySwatch: Colors.blue,

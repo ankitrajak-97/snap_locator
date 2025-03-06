@@ -4,16 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:snap_locator/service/location%20service/loction_service.dart';
 import 'package:snap_locator/ui/home/view/geo_tagged_input.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../model/geo_item.dart';
-import '../../../permissions/permission_helper.dart';
+import '../../../service/permission service/permission_service.dart';
 import '../../../utils/style/app_dimen.dart';
 import '../widget/image_source_bottomsheet.dart';
 
 class HomeController extends GetxController {
   final _name = "HomeController";
+  final locationProvider = Get.find<LocationService>();
   var geoTaggedItems = <GeoTaggedItem>[].obs;
 
   // *Form Fields
@@ -25,15 +27,21 @@ class HomeController extends GetxController {
   void saveGeoTaggedItem() async {
     if (nameController.text.isNotEmpty && descController.text.isNotEmpty) {
       try {
-        Position position = await Geolocator.getCurrentPosition();
+        // Get the current location
+        Position position = await locationProvider.getCurrentLocation();
+
+        // Print latitude and longitude to console
+        print(
+          "Latitude: ${position.latitude}, Longitude: ${position.longitude}",
+        );
 
         geoTaggedItems.add(
           GeoTaggedItem(
             name: nameController.text,
             description: descController.text,
             imagePath: selectedImage.value?.path,
-            latitude: position.latitude, // Fetched latitude
-            longitude: position.longitude, // Fetched longitude
+            latitude: position.latitude,
+            longitude: position.longitude,
           ),
         );
 
@@ -43,10 +51,19 @@ class HomeController extends GetxController {
 
         Get.back();
       } catch (e) {
-        Get.snackbar("Location Error", "Could not fetch location. Please enable GPS and try again.", snackPosition: SnackPosition.BOTTOM);
+        print("Location Error: $e"); // Print error in case of failure
+        Get.snackbar(
+          "Location Error",
+          "Could not fetch location. Please enable GPS and try again.",
+          snackPosition: SnackPosition.BOTTOM,
+        );
       }
     } else {
-      Get.snackbar("Error", "Please enter both Name and Description", snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        "Error",
+        "Please enter both Name and Description",
+        snackPosition: SnackPosition.BOTTOM,
+      );
     }
   }
 
@@ -105,29 +122,6 @@ class HomeController extends GetxController {
   //?   print("Current Location: ${position.latitude}, ${position.longitude}");
   //? }
 
-  Future<Position> getCurrentLocation() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    // Check if location services are enabled
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      throw Exception('Location services are disabled.');
-    }
-
-    // Check and request permission
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.deniedForever) {
-        throw Exception('Location permissions are permanently denied.');
-      }
-    }
-
-    // Fetch and return the current position
-    return await Geolocator.getCurrentPosition();
-  }
-
   void openGoogleMaps(double? lat, double? lng) {
     if (lat == null || lng == null) {
       Get.snackbar("Error", "Location data is missing!");
@@ -141,15 +135,17 @@ class HomeController extends GetxController {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(kRadius * 3))),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(kRadius * 3)),
+      ),
       builder: (context) => const GeoTaggedInput(),
     );
   }
 
   Future<void> permissionCheck() async {
-    var mapPermissions = await PermissionHelper.requestMultiplePermissions();
+    var mapPermissions = await PermissionService.requestMultiplePermissions();
 
-    PermissionHelper.whenPermissionNotGranted(deniedList: mapPermissions);
+    PermissionService.whenPermissionNotGranted(deniedList: mapPermissions);
     print(mapPermissions);
   }
 
@@ -160,7 +156,8 @@ class HomeController extends GetxController {
   }
 
   void onClickFabIcon() async {
-    bool allPermissionsGranted = await PermissionHelper.requestAllPermissions();
+    bool allPermissionsGranted =
+        await PermissionService.requestAllPermissions();
 
     if (allPermissionsGranted) {
       print('opening bottomsheet');
