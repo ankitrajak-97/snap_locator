@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -27,48 +26,33 @@ class HomeController extends GetxController {
   var descController = TextEditingController();
   Rxn<File> selectedImage = Rxn<File>();
 
-  // Function to convert list to JSON and print it
-  void saveDataAsJson() {
-    final jsonData = BaseResponse(geoTaggedItems: geoTaggedItems).toJson();
-    print(jsonData); // Print formatted JSON
-  }
-
   void saveGeoTaggedItem() async {
-    if (nameController.text.isEmpty || descController.text.isEmpty) {
-      Get.snackbar(
-        "Error",
-        "Please enter both Name and Description",
-        snackPosition: SnackPosition.BOTTOM,
-      );
+    var name = nameController.text.trim();
+    var desc = descController.text.trim();
+    if (name.isEmpty || desc.trim().isEmpty) {
+      Get.snackbar("Error", "Please enter both Name and Description", snackPosition: SnackPosition.BOTTOM);
       return;
     }
 
-    Position? position = await locationProvider.getCurrentLocation();
+    var position = await locationProvider.getCurrentLocation();
 
     if (position == null) {
-      Get.snackbar(
-        "Location Error",
-        "Could not fetch location. Please enable GPS and try again.",
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      Get.snackbar("Location Error", "Could not fetch location. Please enable GPS and try again.", snackPosition: SnackPosition.BOTTOM);
       return;
     }
 
-    // Add to list
-    geoTaggedItems.add(
-      GeoTaggedItem(
-        name: nameController.text.trim(),
-        description: descController.text.trim(),
-        imagePath: selectedImage.value?.path,
-        latitude: position.latitude,
-        longitude: position.longitude,
-      ),
+    var geoItem = GeoTaggedItem(
+      name: name,
+      description: desc,
+      imagePath: selectedImage.value?.path,
+      latitude: position.latitude,
+      longitude: position.longitude,
     );
+    // Add to list
+    geoTaggedItems.add(geoItem);
 
     // Clear fields after successful save
-    nameController.clear();
-    descController.clear();
-    selectedImage.value = null;
+    clearFields();
     Get.back();
     saveDataAsJson();
     // Close bottom sheet safely
@@ -85,6 +69,18 @@ class HomeController extends GetxController {
         duration: Duration(seconds: 3),
       );
     });
+  }
+
+  // Function to convert list to JSON and print it
+  void saveDataAsJson() {
+    final jsonData = BaseResponse(geoTaggedItems: geoTaggedItems).toJson();
+    print(jsonData); // Print formatted JSON
+  }
+
+  void clearFields() {
+    nameController.clear();
+    descController.clear();
+    selectedImage.value = null;
   }
 
   // Function to show image picker options (Gallery/Camera)
@@ -155,9 +151,7 @@ class HomeController extends GetxController {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(kRadius * 3)),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(kRadius * 3))),
       builder: (context) => const GeoTaggedInput(),
     );
   }
