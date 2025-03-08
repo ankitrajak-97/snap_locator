@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -30,7 +31,8 @@ class HomeController extends GetxController {
   // Function to convert list to JSON and print it
   void saveDataAsJson() {
     final jsonData = BaseResponse(geoTaggedItems: geoTaggedItems).toJson();
-    print(jsonData); // Print formatted JSON
+    print(jsonData);
+    log(jsonData.toString(), error: jsonData, name: _name);
   }
 
   void saveGeoTaggedItem() async {

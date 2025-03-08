@@ -6,6 +6,7 @@ part 'base_response.g.dart';
 
 @JsonSerializable()
 class BaseResponse {
+  @JsonKey(name: "geoItems")
   final List<GeoTaggedItem> geoTaggedItems;
 
   BaseResponse({required this.geoTaggedItems});

@@ -4,10 +4,19 @@ part 'geo_tagged_item.g.dart';
 
 @JsonSerializable()
 class GeoTaggedItem {
+  @JsonKey(name: "name")
   final String name;
+
+  @JsonKey(name: "desc")
   final String description;
+
+  @JsonKey(name: "img")
   final String? imagePath;
+
+  @JsonKey(name: "lat")
   final double latitude;
+
+  @JsonKey(name: "lng")
   final double longitude;
 
   GeoTaggedItem({
