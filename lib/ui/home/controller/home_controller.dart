@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:snap_locator/service/location%20service/loction_service.dart';
 import 'package:snap_locator/ui/home/view/geo_tagged_input.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../model/geo_item.dart';
+import '../../../model/base/base_response.dart';
+import '../../../model/geo_tagged_items/geo_tagged_item.dart';
 import '../../../service/permission service/permission_service.dart';
 import '../../../utils/style/app_dimen.dart';
 import '../widget/image_source_bottomsheet.dart';
@@ -16,6 +18,7 @@ import '../widget/image_source_bottomsheet.dart';
 class HomeController extends GetxController {
   final _name = "HomeController";
   final locationProvider = Get.find<LocationService>();
+  final permissionProvider = Get.find<PermissionService>();
   var geoTaggedItems = <GeoTaggedItem>[].obs;
 
   // *Form Fields
@@ -24,47 +27,64 @@ class HomeController extends GetxController {
   var descController = TextEditingController();
   Rxn<File> selectedImage = Rxn<File>();
 
+  // Function to convert list to JSON and print it
+  void saveDataAsJson() {
+    final jsonData = BaseResponse(geoTaggedItems: geoTaggedItems).toJson();
+    print(jsonData); // Print formatted JSON
+  }
+
   void saveGeoTaggedItem() async {
-    if (nameController.text.isNotEmpty && descController.text.isNotEmpty) {
-      try {
-        // Get the current location
-        Position position = await locationProvider.getCurrentLocation();
-
-        // Print latitude and longitude to console
-        print(
-          "Latitude: ${position.latitude}, Longitude: ${position.longitude}",
-        );
-
-        geoTaggedItems.add(
-          GeoTaggedItem(
-            name: nameController.text,
-            description: descController.text,
-            imagePath: selectedImage.value?.path,
-            latitude: position.latitude,
-            longitude: position.longitude,
-          ),
-        );
-
-        nameController.clear();
-        descController.clear();
-        selectedImage.value = null;
-
-        Get.back();
-      } catch (e) {
-        print("Location Error: $e"); // Print error in case of failure
-        Get.snackbar(
-          "Location Error",
-          "Could not fetch location. Please enable GPS and try again.",
-          snackPosition: SnackPosition.BOTTOM,
-        );
-      }
-    } else {
+    if (nameController.text.isEmpty || descController.text.isEmpty) {
       Get.snackbar(
         "Error",
         "Please enter both Name and Description",
         snackPosition: SnackPosition.BOTTOM,
       );
+      return;
     }
+
+    Position? position = await locationProvider.getCurrentLocation();
+
+    if (position == null) {
+      Get.snackbar(
+        "Location Error",
+        "Could not fetch location. Please enable GPS and try again.",
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
+    // Add to list
+    geoTaggedItems.add(
+      GeoTaggedItem(
+        name: nameController.text.trim(),
+        description: descController.text.trim(),
+        imagePath: selectedImage.value?.path,
+        latitude: position.latitude,
+        longitude: position.longitude,
+      ),
+    );
+
+    // Clear fields after successful save
+    nameController.clear();
+    descController.clear();
+    selectedImage.value = null;
+    Get.back();
+    saveDataAsJson();
+    // Close bottom sheet safely
+    if (Get.isBottomSheetOpen ?? false) {
+      Get.back();
+    }
+
+    // Delay Snackbar to ensure visibility after closing bottom sheet
+    Future.delayed(Duration(milliseconds: 200), () {
+      Get.snackbar(
+        "Location Saved",
+        "Lat: ${position.latitude}, Lng: ${position.longitude}",
+        snackPosition: SnackPosition.BOTTOM,
+        duration: Duration(seconds: 3),
+      );
+    });
   }
 
   // Function to show image picker options (Gallery/Camera)
@@ -147,6 +167,9 @@ class HomeController extends GetxController {
 
     PermissionService.whenPermissionNotGranted(deniedList: mapPermissions);
     print(mapPermissions);
+    if (mapPermissions[Permission.location] == PermissionStatus.granted) {
+      await locationProvider.ensureGpsEnabled();
+    }
   }
 
   @override
@@ -156,18 +179,16 @@ class HomeController extends GetxController {
   }
 
   void onClickFabIcon() async {
-    bool allPermissionsGranted =
-        await PermissionService.requestAllPermissions();
-
-    if (allPermissionsGranted) {
-      print('opening bottomsheet');
-      openBottomSheet(Get.context!);
-    } else {
+    if (!await PermissionService.requestAllPermissions()) {
       Get.snackbar(
         "Permissions Required",
         "Please grant all permissions (Camera, Gallery, Location) to continue.",
         snackPosition: SnackPosition.BOTTOM,
       );
+      return;
     }
+
+    print('Opening bottom sheet');
+    openBottomSheet(Get.context!);
   }
 }

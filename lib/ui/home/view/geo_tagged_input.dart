@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:snap_locator/utils/style/app_color.dart';
 
+import '../../../utils/style/app_color.dart';
 import '../controller/home_controller.dart';
 
 class GeoTaggedInput extends StatelessWidget {
@@ -18,8 +18,8 @@ class GeoTaggedInput extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: kBackgroundColor,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        color: kBackgroundColor, // Keep it dark navy
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
       ),
       child: Padding(
         padding: EdgeInsets.only(
@@ -29,55 +29,78 @@ class GeoTaggedInput extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Heading
               Text(
                 "Add a Geo Item",
-                style: GoogleFonts.nanumGothic(
-                  color: Colors.black,
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
                   fontSize: 22.sp,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
+
+              // Name Input Field
               TextField(
                 controller: controller.nameController,
+                style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                   labelText: 'Name *',
-                  hintText: 'Enter Name here',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(11),
+                  labelStyle: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.white,
                   ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: controller.descController,
-                maxLines: 4,
-                decoration: InputDecoration(
-                  labelText: 'Description *',
-                  hintText: 'Enter description here',
+                  hintText: 'Enter Name here',
+                  hintStyle: TextStyle(color: Colors.grey.shade500),
+                  filled: true,
+                  fillColor: const Color(0xFF1A1A2E),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(11),
+                    borderSide: BorderSide(
+                      color: Colors.grey.shade600,
+                    ), // Soft grey border
                   ),
                 ),
               ),
               const SizedBox(height: 16),
 
-              // Image Picker
+              // Description Input Field
+              TextField(
+                controller: controller.descController,
+                maxLines: 4,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: 'Description *',
+                  labelStyle: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.white,
+                  ),
+                  hintText: 'Enter description here',
+                  hintStyle: TextStyle(color: Colors.grey.shade500),
+                  filled: true,
+                  fillColor: const Color(0xFF1A1A2E),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(11),
+                    borderSide: BorderSide(color: Colors.grey.shade600),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Image Picker with better contrast
               Obx(() {
                 return InkWell(
                   onTap: () {
-                    controller.showImagePickerOptions(
-                      context,
-                    ); // Call Controller Function
+                    controller.showImagePickerOptions(context);
                   },
                   child: Container(
                     height: 150,
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
+                      border: Border.all(color: Colors.blueGrey.shade700),
                       borderRadius: BorderRadius.circular(11),
-                      color: Colors.grey[200],
+                      color: const Color(0xFF1A1A2E),
                     ),
                     child:
                         controller.selectedImage.value != null
@@ -88,31 +111,55 @@ class GeoTaggedInput extends StatelessWidget {
                                 fit: BoxFit.cover,
                               ),
                             )
-                            : const Center(
+                            : Center(
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
                                     Icons.camera_alt,
                                     size: 50,
-                                    color: Colors.grey,
+                                    color: Colors.white,
                                   ),
                                   SizedBox(height: 8),
-                                  Text("Tap to pick an image"),
+                                  Text(
+                                    "Tap to pick an image",
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w400,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
                   ),
                 );
               }),
-
               const SizedBox(height: 16),
 
+              // Save Button with better contrast
               ElevatedButton(
                 onPressed: () {
                   controller.saveGeoTaggedItem();
                 },
-                child: Text("Save"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 12,
+                  ),
+                ),
+                child: Text(
+                  "Save",
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ],
           ),

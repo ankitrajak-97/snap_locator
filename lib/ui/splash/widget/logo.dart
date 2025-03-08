@@ -10,15 +10,9 @@ class SplashLogo extends StatelessWidget {
     return Container(
       alignment: Alignment.center,
       height: Get.height,
-      child: Container(
-        // decoration: BoxDecoration(
-        //   borderRadius: BorderRadius.only(topLeft: Radius.circular(kRadius)),
-        // ),
-        color: const Color(0xFF330867),
-        child: Text(
-          'Snap Locator',
-          style: GoogleFonts.lilitaOne(color: Colors.white, fontSize: 32.0),
-        ),
+      child: Text(
+        'Snap Locator',
+        style: GoogleFonts.lilitaOne(color: Color(0xFFFFD700), fontSize: 32.0),
       ),
     );
   }

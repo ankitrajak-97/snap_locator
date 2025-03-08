@@ -23,7 +23,7 @@ class SplashView extends StatelessWidget {
           Positioned(
             bottom: kHeight * 8,
             child: CircularProgressIndicator(
-              color: const Color(0xFF330867),
+              color: Colors.white,
               strokeWidth: 3.0,
             ),
           ),

@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 
@@ -12,26 +13,53 @@ class LocationService extends GetxService {
     super.onInit();
   }
 
-  Future<Position> getCurrentLocation() async {
-    bool serviceEnabled;
-    LocationPermission permission;
+  /// Ensures GPS is enabled by triggering the system pop-up first
+  Future<bool> ensureGpsEnabled() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
 
-    // Check if location services are enabled
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      throw Exception('Location services are disabled.');
-    }
-
-    // Check and request permission
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.deniedForever) {
-        throw Exception('Location permissions are permanently denied.');
+      try {
+        // 🔥 This triggers the system GPS pop-up
+        await Geolocator.getCurrentPosition();
+        return true; // GPS is enabled
+      } catch (e) {
+        // ❌ User denied GPS → Show dialog to open settings
+        _showGpsDeniedDialog();
+        return false;
       }
     }
+    return true; // GPS is already enabled
+  }
 
-    // Fetch and return the current position
+  /// Fetches the current location
+  Future<Position?> getCurrentLocation() async {
+    bool gpsEnabled = await ensureGpsEnabled();
+
+    if (!gpsEnabled) {
+      return null; // User didn't enable GPS
+    }
+
     return await Geolocator.getCurrentPosition();
+  }
+
+  /// 🔥 Show a Dialog if the user denies GPS
+  void _showGpsDeniedDialog() {
+    Get.defaultDialog(
+      title: "GPS Required",
+      middleText: "Please enable GPS to continue.",
+      actions: [
+        TextButton(
+          onPressed: () => Get.back(), // ❌ Cancel
+          child: Text("Cancel"),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            Get.back(); // Close dialog
+            Geolocator.openLocationSettings(); // ⚙️ Open settings
+          },
+          child: Text("Open Settings"),
+        ),
+      ],
+    );
   }
 }
