@@ -1,8 +1,8 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -12,6 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../model/base/base_response.dart';
 import '../../../model/geo_tagged_items/geo_tagged_item.dart';
+import '../../../service/data provider/data_provider_service.dart';
 import '../../../service/permission service/permission_service.dart';
 import '../../../utils/style/app_dimen.dart';
 import '../widget/image_source_bottomsheet.dart';
@@ -20,6 +21,7 @@ class HomeController extends GetxController {
   final _name = "HomeController";
   final locationProvider = Get.find<LocationService>();
   final permissionProvider = Get.find<PermissionService>();
+  final dataProvider = Get.find<DataProviderService>();
   var geoTaggedItems = <GeoTaggedItem>[].obs;
 
   // *Form Fields
@@ -27,58 +29,63 @@ class HomeController extends GetxController {
   var nameController = TextEditingController();
   var descController = TextEditingController();
   Rxn<File> selectedImage = Rxn<File>();
+  var isSaving = false.obs;
 
-  // Function to convert list to JSON and print it
-  void saveDataAsJson() {
-    final jsonData = BaseResponse(geoTaggedItems: geoTaggedItems).toJson();
-    print(jsonData);
-    log(jsonData.toString(), error: jsonData, name: _name);
+  @override
+  void onInit() {
+    super.onInit();
+    geoTaggedItems.addAll(dataProvider.geoTaggedItems);
   }
 
-  void saveGeoTaggedItem() async {
-    if (nameController.text.isEmpty || descController.text.isEmpty) {
+  Future<void> saveGeoTaggedItem() async {
+    if (isSaving.value) return;
+    isSaving.value = true;
+    var name = nameController.text.trim();
+    var desc = descController.text.trim();
+    if (name.isEmpty || desc.isEmpty) {
+      isSaving.value = false;
       Get.snackbar(
         "Error",
         "Please enter both Name and Description",
         snackPosition: SnackPosition.BOTTOM,
       );
+
       return;
     }
 
-    Position? position = await locationProvider.getCurrentLocation();
+    var position = await locationProvider.getCurrentLocation();
 
     if (position == null) {
+      isSaving.value = false;
       Get.snackbar(
         "Location Error",
         "Could not fetch location. Please enable GPS and try again.",
         snackPosition: SnackPosition.BOTTOM,
       );
+
       return;
     }
 
-    // Add to list
-    geoTaggedItems.add(
-      GeoTaggedItem(
-        name: nameController.text.trim(),
-        description: descController.text.trim(),
-        imagePath: selectedImage.value?.path,
-        latitude: position.latitude,
-        longitude: position.longitude,
-      ),
+    var geoItem = GeoTaggedItem(
+      name: name,
+      description: desc,
+      imagePath: selectedImage.value?.path,
+      latitude: position.latitude,
+      longitude: position.longitude,
     );
+    // Add to list
+    geoTaggedItems.add(geoItem);
+    await dataProvider.saveGeoTaggedItems(
+      geoTaggedItems,
+    ); // Save using DataService
 
     // Clear fields after successful save
-    nameController.clear();
-    descController.clear();
-    selectedImage.value = null;
+    clearFields();
     Get.back();
     saveDataAsJson();
-    // Close bottom sheet safely
-    if (Get.isBottomSheetOpen ?? false) {
-      Get.back();
-    }
 
     // Delay Snackbar to ensure visibility after closing bottom sheet
+    isSaving.value = false;
     Future.delayed(Duration(milliseconds: 200), () {
       Get.snackbar(
         "Location Saved",
@@ -87,6 +94,40 @@ class HomeController extends GetxController {
         duration: Duration(seconds: 3),
       );
     });
+    isSaving.value = false;
+  }
+
+  //Edit a item in a list
+  Future<void> editGeoTaggedItem(
+    int index,
+    String newName,
+    String newDesc,
+  ) async {
+    geoTaggedItems[index] = geoTaggedItems[index].copyWith(
+      name: newName,
+      description: newDesc,
+    );
+    geoTaggedItems.refresh(); // Ensure UI updates
+    await dataProvider.saveGeoTaggedItems(geoTaggedItems);
+  }
+
+  // Delete a item from List
+
+  Future<void> deleteGeotaggedItem(int index) async {
+    geoTaggedItems.removeAt(index);
+    await dataProvider.saveGeoTaggedItems(geoTaggedItems);
+  }
+
+  // Function to convert list to JSON and print it
+  void saveDataAsJson() {
+    final jsonData = BaseResponse(geoTaggedItems: geoTaggedItems).toJson();
+    log(jsonEncode(jsonData), name: _name); // Print formatted JSON
+  }
+
+  void clearFields() {
+    nameController.clear();
+    descController.clear();
+    selectedImage.value = null;
   }
 
   // Function to show image picker options (Gallery/Camera)

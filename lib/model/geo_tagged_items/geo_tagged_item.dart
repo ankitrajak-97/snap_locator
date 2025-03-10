@@ -27,6 +27,22 @@ class GeoTaggedItem {
     required this.longitude,
   });
 
+  GeoTaggedItem copyWith({
+    String? name,
+    String? description,
+    String? imagePath,
+    double? latitude,
+    double? longitude,
+  }) {
+    return GeoTaggedItem(
+      name: name ?? this.name,
+      description: description ?? this.description,
+      imagePath: imagePath ?? this.imagePath,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+    );
+  }
+
   // Convert from JSON
   factory GeoTaggedItem.fromJson(Map<String, dynamic> json) =>
       _$GeoTaggedItemFromJson(json);
