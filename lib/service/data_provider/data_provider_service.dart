@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 
 import '../../model/geo_tagged_items/geo_tagged_item.dart';
-import '../../shared prefs helper/shared_prefs_helper.dart';
+import '../../shared_prefs_helper/shared_prefs_helper.dart';
 
 class DataProviderService extends GetxService {
   final _name = "DataService";

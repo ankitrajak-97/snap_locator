@@ -1,15 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 import '../../../model/geo_tagged_items/geo_tagged_item.dart';
-import '../controller/home_controller.dart';
-import 'image_view.dart';
 
 class GeoListItem extends StatelessWidget {
   const GeoListItem({
     super.key,
+    required this.onLeadingClick,
     required this.item,
     required this.onLocationIconTap,
     required this.onDeleteIconTap,
@@ -17,19 +15,17 @@ class GeoListItem extends StatelessWidget {
   });
 
   final GeoTaggedItem item;
+  final VoidCallback onLeadingClick;
   final VoidCallback onLocationIconTap;
   final VoidCallback onEditIconTap;
   final VoidCallback onDeleteIconTap;
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<HomeController>;
     return Card(
       child: ListTile(
         leading: GestureDetector(
-          onTap: () {
-            Get.to(() => FullScreenImageView(imagePath: item.imagePath!));
-          },
+          onTap: onLeadingClick,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: Image.file(
@@ -50,18 +46,9 @@ class GeoListItem extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           mainAxisSize: MainAxisSize.min,
           children: [
-            IconButton(
-              icon: Icon(Icons.location_on, color: Colors.red),
-              onPressed: onLocationIconTap,
-            ),
-            IconButton(
-              icon: Icon(Icons.edit, color: Colors.red),
-              onPressed: onEditIconTap,
-            ),
-            IconButton(
-              icon: Icon(Icons.delete, color: Colors.red),
-              onPressed: onDeleteIconTap,
-            ),
+            IconButton(icon: Icon(Icons.location_on, color: Colors.red), onPressed: onLocationIconTap),
+            IconButton(icon: Icon(Icons.edit, color: Colors.red), onPressed: onEditIconTap),
+            IconButton(icon: Icon(Icons.delete, color: Colors.red), onPressed: onDeleteIconTap),
           ],
         ),
       ),

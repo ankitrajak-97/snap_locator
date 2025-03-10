@@ -6,14 +6,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:snap_locator/service/location%20service/loction_service.dart';
+import 'package:snap_locator/service/location_service/loction_service.dart';
 import 'package:snap_locator/ui/home/view/geo_tagged_input.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../model/base/base_response.dart';
 import '../../../model/geo_tagged_items/geo_tagged_item.dart';
-import '../../../service/data provider/data_provider_service.dart';
-import '../../../service/permission service/permission_service.dart';
+import '../../../service/data_provider/data_provider_service.dart';
+import '../../../service/permission_service/permission_service.dart';
 import '../../../utils/style/app_dimen.dart';
 import '../widget/image_source_bottomsheet.dart';
 

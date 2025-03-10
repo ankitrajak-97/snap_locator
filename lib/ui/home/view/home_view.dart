@@ -7,6 +7,7 @@ import 'package:snap_locator/utils/style/app_dimen.dart';
 
 import '../controller/home_controller.dart';
 import '../widget/geo_list_Item.dart';
+import '../widget/image_view.dart';
 import 'edit_items_sheet.dart';
 
 class HomeView extends StatelessWidget {
@@ -37,13 +38,7 @@ class HomeView extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    "Geo Tags",
-                    style: GoogleFonts.lilitaOne(
-                      color: Colors.white,
-                      fontSize: 24.0,
-                    ),
-                  ),
+                  Text("Geo Tags", style: GoogleFonts.lilitaOne(color: Colors.white, fontSize: 24.0)),
                   IconButton(
                     icon: Icon(Icons.settings, color: Colors.white),
                     onPressed: () {
@@ -59,9 +54,7 @@ class HomeView extends StatelessWidget {
       body: Obx(() {
         return Visibility(
           visible: controller.geoTaggedItems.isNotEmpty,
-          replacement: NoSavedLocationsWidget().paddingSymmetric(
-            horizontal: 24,
-          ),
+          replacement: NoSavedLocationsWidget().paddingSymmetric(horizontal: 24),
           child: ListView.builder(
             itemCount: controller.geoTaggedItems.length,
             itemBuilder: (context, index) {
@@ -71,15 +64,14 @@ class HomeView extends StatelessWidget {
                 onLocationIconTap: () {
                   controller.openGoogleMaps(item.latitude, item.longitude);
                 },
+                onLeadingClick: () {
+                  Get.to(() => FullScreenImageView(imagePath: item.imagePath!));
+                },
                 onEditIconTap: () {
                   Get.bottomSheet(
-                    EditGeoTaggedBottomSheet(
-                      index: index,
-                      item: controller.geoTaggedItems[index],
-                    ),
+                    EditGeoTaggedBottomSheet(index: index, item: controller.geoTaggedItems[index]),
                     isScrollControlled: true, // Allows full-height bottom sheet
-                    backgroundColor:
-                        Colors.white, // Optional: Ensures visibility
+                    backgroundColor: Colors.white, // Optional: Ensures visibility
                   );
                 },
                 onDeleteIconTap: () {
